@@ -3,29 +3,41 @@ name: React Native Android Build
 on:
   push:
     branches:
-      - main # or master
+      - main
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Install Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' # Specify your Node.js version
+          node-version: '18'
 
-      - name: Install npm dependencies
-        run: npm install
+      - name: Install dependencies
+        run: yarn install # or npm install
+
+      - name: Generate Android folder
+        run: yarn android # or npm run android
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
 
       - name: Build Android Release
-        run: |
-          cd android && ./gradlew assembleRelease
+        run: cd android && ./gradlew assembleRelease
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-${{ github.run_number }}.apk
+          name: app-release-${{ github.sha }}
           path: android/app/build/outputs/apk/release/app-release.apk
